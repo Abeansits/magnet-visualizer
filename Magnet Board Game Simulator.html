@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnetic Field Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            width: 100%;
+            height: 100vh;
+            align-items: center;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            width: 300px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: -0.5px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 12px 20px;
+            font-size: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        button:hover::before {
+            opacity: 0.1;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .button-icon {
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .parameter {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .parameter:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .parameter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .parameter label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .parameter .value {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+            font-family: 'SF Mono', Monaco, Consolas, 'Courier New', monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #764ba2;
+            box-shadow: 0 2px 12px rgba(118, 75, 162, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            border: none;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            background: #764ba2;
+            box-shadow: 0 2px 12px rgba(118, 75, 162, 0.5);
+        }
+
+        button.active {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.5) !important;
+            transform: translateY(-1px);
+        }
+        
+        button.active::before {
+            opacity: 0.2;
+        }
+
+        #canvas {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: crosshair;
+            display: block;
+            background: #050505;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .info {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .north-pole {
+            background: #ff4757;
+            box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+        }
+
+        .south-pole {
+            background: #00d2d3;
+            box-shadow: 0 2px 8px rgba(0, 210, 211, 0.4);
+        }
+
+        @media (max-width: 1200px) {
+            .app-container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-width: 600px;
+                margin-bottom: 20px;
+            }
+            
+            .section {
+                margin-bottom: 20px;
+            }
+            
+            .button-group {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            button {
+                flex: 1;
+                min-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <h1>Magnetic Field Simulator</h1>
+            
+            <div class="section">
+                <div class="section-title">Controls</div>
+                <div class="button-group">
+                    <button onclick="addMagnet('north')" id="northButton">
+                        <span class="button-icon">⊕</span>Add North Pole
+                    </button>
+                    <button onclick="addMagnet('south')" id="southButton">
+                        <span class="button-icon">⊕</span>Add South Pole
+                    </button>
+                    <button onclick="setTool('anchor')" id="anchorButton" title="Click on magnets to lock/unlock them in place">
+                        <span class="button-icon">⚓</span>Anchor Tool
+                    </button>
+                    <button onclick="toggleFieldView()">
+                        <span class="button-icon">👁</span>Toggle Field View
+                    </button>
+                    <button onclick="clearMagnets()">
+                        <span class="button-icon">✕</span>Clear All
+                    </button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Parameters</div>
+                <div class="parameter">
+                    <div class="parameter-header">
+                        <label>Friction</label>
+                        <span class="value" id="frictionValue">0.95</span>
+                    </div>
+                    <input type="range" id="frictionSlider" min="0.5" max="1.0" step="0.01" value="0.95">
+                    <div style="font-size: 11px; color: rgba(255, 255, 255, 0.4); margin-top: 8px;">
+                        Lower values = icy surface, Higher = sticky surface
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <canvas id="canvas" width="900" height="600"></canvas>
+            <div class="info">
+                Click to place • Drag to move • Right-click to remove • Anchor tool locks magnets
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color north-pole"></div>
+                        <span>North Pole</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color south-pole"></div>
+                        <span>South Pole</span>
+                    </div>
+                    <div class="legend-item">
+                        <span style="color: #ffd700;">⚓</span>
+                        <span>Anchored</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let magnets = [];
+        let particles = [];
+        let selectedMagnet = null;
+        let isDragging = false;
+        let mouseX = 0, mouseY = 0;
+        let magnetType = 'north';
+        let showFieldLines = true;
+        let animationFrame = 0;
+        const MAX_PARTICLES = 150; // Limit particles for performance
+        let friction = 0.95; // Default friction value
+        let currentTool = 'place'; // 'place' or 'anchor'
+
+        class Magnet {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.radius = 30;
+                this.strength = 250; // Even stronger for better field extension
+                this.vx = 0;
+                this.vy = 0;
+                this.rotation = 0;
+                this.anchored = false;
+                // Also create particles between same-type magnets to show repulsion
+                if (animationFrame % 10 === 0) {
+                    for (let i = 0; i < magnets.length; i++) {
+                        for (let j = i + 1; j < magnets.length; j++) {
+                            if (magnets[i].type === magnets[j].type) {
+                                const dx = magnets[j].x - magnets[i].x;
+                                const dy = magnets[j].y - magnets[i].y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (dist < 200 && dist > magnets[i].radius + magnets[j].radius) {
+                                    // Create particles at midpoint to show repulsion
+                                    const midX = (magnets[i].x + magnets[j].x) / 2;
+                                    const midY = (magnets[i].y + magnets[j].y) / 2;
+                                    
+                                    for (let k = 0; k < 4; k++) {
+                                        const perpAngle = Math.atan2(dy, dx) + Math.PI/2;
+                                        const offset = (k - 1.5) * 10;
+                                        particles.push(new FieldParticle(
+                                            midX + Math.cos(perpAngle) * offset,
+                                            midY + Math.sin(perpAngle) * offset,
+                                            null
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            draw(frame) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                // Magnet body with modern colors
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius);
+                if (this.type === 'north') {
+                    gradient.addColorStop(0, '#ff6b7a');
+                    gradient.addColorStop(0.7, '#ff4757');
+                    gradient.addColorStop(1, '#ee3f56');
+                } else {
+                    gradient.addColorStop(0, '#22d3d3');
+                    gradient.addColorStop(0.7, '#00d2d3');
+                    gradient.addColorStop(1, '#00b8b9');
+                }
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Inner circle for depth
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.beginPath();
+                ctx.arc(-this.radius/3, -this.radius/3, this.radius/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Pole indicator
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.font = 'bold 20px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.type === 'north' ? 'N' : 'S', 0, 0);
+                
+                // Border (different for anchored magnets)
+                if (this.anchored) {
+                    // Pulsing glow effect
+                    const pulse = Math.sin(frame * 0.05) * 0.3 + 0.7;
+                    ctx.shadowBlur = 10 + pulse * 10;
+                    ctx.shadowColor = `rgba(255, 215, 0, ${pulse * 0.6})`;
+                    ctx.strokeStyle = `rgba(255, 215, 0, ${pulse})`;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    
+                    // Draw anchor symbol
+                    ctx.fillStyle = `rgba(255, 215, 0, ${pulse})`;
+                    ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, sans-serif';
+                    ctx.fillText('⚓', 0, this.radius + 12);
+                } else {
+                    // Normal border
+                    ctx.strokeStyle = this.type === 'north' ? 'rgba(255, 71, 87, 0.5)' : 'rgba(0, 210, 211, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+
+            update() {
+                if (this.anchored) return; // Don't update anchored magnets
+                
+                // Apply physics
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Friction
+                this.vx *= friction;
+                this.vy *= friction;
+                
+                // Bounce off walls
+                if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
+                    this.vx *= -0.8;
+                    this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                }
+                if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
+                    this.vy *= -0.8;
+                    this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+                }
+                
+                // Rotate based on velocity
+                this.rotation += (this.vx * 0.01);
+            }
+        }
+
+        class FieldParticle {
+            constructor(x, y, sourceMagnet) {
+                this.x = x;
+                this.y = y;
+                this.sourceMagnet = sourceMagnet;
+                this.vx = 0;
+                this.vy = 0;
+                this.life = 1;
+                this.trail = [];
+                this.maxLife = 200; // Shorter life for better performance
+            }
+
+            update() {
+                // Calculate field vector at current position
+                let fx = 0, fy = 0;
+                
+                magnets.forEach(magnet => {
+                    const dx = this.x - magnet.x;
+                    const dy = this.y - magnet.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist > 2) {
+                        // Stronger field that extends further
+                        const fieldStrength = (magnet.strength * 5) / (dist * dist);
+                        
+                        // For north pole: field lines point away
+                        // For south pole: field lines point toward
+                        if (magnet.type === 'north') {
+                            fx += (dx / dist) * fieldStrength;
+                            fy += (dy / dist) * fieldStrength;
+                        } else {
+                            fx -= (dx / dist) * fieldStrength;
+                            fy -= (dy / dist) * fieldStrength;
+                        }
+                    }
+                });
+                
+                // Normalize and apply velocity
+                const mag = Math.sqrt(fx * fx + fy * fy);
+                if (mag > 0) {
+                    this.vx = (fx / mag) * 4; // Faster movement along field lines
+                    this.vy = (fy / mag) * 4;
+                }
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Add to trail
+                this.trail.push({x: this.x, y: this.y});
+                if (this.trail.length > 30) { // Shorter trails for performance
+                    this.trail.shift();
+                }
+                
+                // Check if particle reached a south pole
+                magnets.forEach(magnet => {
+                    if (magnet.type === 'south') {
+                        const dx = this.x - magnet.x;
+                        const dy = this.y - magnet.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < magnet.radius) {
+                            this.life = 0; // End particle at south pole
+                        }
+                    }
+                });
+                
+                // Decrease life
+                this.maxLife--;
+                if (this.maxLife <= 0) this.life = 0;
+                
+                // Fade out gradually
+                this.life = this.maxLife > 100 ? 1 : this.maxLife / 100;
+            }
+
+            draw() {
+                // Draw trail with modern gradient
+                if (this.trail.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.trail[0].x, this.trail[0].y);
+                    
+                    for (let i = 1; i < this.trail.length; i++) {
+                        ctx.lineTo(this.trail[i].x, this.trail[i].y);
+                    }
+                    
+                    const gradient = ctx.createLinearGradient(
+                        this.trail[0].x, this.trail[0].y,
+                        this.x, this.y
+                    );
+                    gradient.addColorStop(0, `rgba(102, 126, 234, 0)`);
+                    gradient.addColorStop(1, `rgba(118, 75, 162, ${this.life * 0.6})`);
+                    
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                
+                // Draw particle head
+                const glow = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, 6);
+                glow.addColorStop(0, `rgba(118, 75, 162, ${this.life})`);
+                glow.addColorStop(0.5, `rgba(102, 126, 234, ${this.life * 0.5})`);
+                glow.addColorStop(1, `rgba(102, 126, 234, 0)`);
+                
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.life * 0.8})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawFieldLines() {
+            if (!showFieldLines) return;
+            
+            // Create new particles less frequently and check limit
+            if (animationFrame % 10 === 0 && magnets.length > 0 && particles.length < MAX_PARTICLES) {
+                magnets.forEach(magnet => {
+                    if (magnet.type === 'north' && particles.length < MAX_PARTICLES) {
+                        // Fewer particles per magnet
+                        for (let i = 0; i < 6; i++) {
+                            if (particles.length >= MAX_PARTICLES) break;
+                            const angle = (i / 6) * Math.PI * 2 + (animationFrame * 0.02);
+                            const dist = magnet.radius;
+                            particles.push(new FieldParticle(
+                                magnet.x + Math.cos(angle) * dist,
+                                magnet.y + Math.sin(angle) * dist,
+                                magnet
+                            ));
+                        }
+                    }
+                });
+                
+                // Fewer particles for south poles
+                if (animationFrame % 20 === 0) {
+                    magnets.forEach(magnet => {
+                        if (magnet.type === 'south' && particles.length < MAX_PARTICLES) {
+                            for (let i = 0; i < 4; i++) {
+                                if (particles.length >= MAX_PARTICLES) break;
+                                const angle = (i / 4) * Math.PI * 2 + (animationFrame * 0.02);
+                                const dist = 200;
+                                particles.push(new FieldParticle(
+                                    magnet.x + Math.cos(angle) * dist,
+                                    magnet.y + Math.sin(angle) * dist,
+                                    null
+                                ));
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Simplified repulsion particles
+            if (animationFrame % 30 === 0 && particles.length < MAX_PARTICLES - 10) {
+                for (let i = 0; i < magnets.length; i++) {
+                    for (let j = i + 1; j < magnets.length; j++) {
+                        if (magnets[i].type === magnets[j].type) {
+                            const dx = magnets[j].x - magnets[i].x;
+                            const dy = magnets[j].y - magnets[i].y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (dist < 150 && dist > magnets[i].radius + magnets[j].radius) {
+                                const midX = (magnets[i].x + magnets[j].x) / 2;
+                                const midY = (magnets[i].y + magnets[j].y) / 2;
+                                particles.push(new FieldParticle(midX, midY, null));
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Draw static field lines for better visualization
+            ctx.strokeStyle = 'rgba(102, 126, 234, 0.08)';
+            ctx.lineWidth = 1;
+            
+            // Draw simplified field lines
+            magnets.forEach(magnet => {
+                if (magnet.type === 'north') {
+                    // Check for nearest south pole
+                    let nearestSouth = null;
+                    let minDist = Infinity;
+                    
+                    magnets.forEach(other => {
+                        if (other.type === 'south') {
+                            const dist = Math.sqrt(
+                                Math.pow(other.x - magnet.x, 2) + 
+                                Math.pow(other.y - magnet.y, 2)
+                            );
+                            if (dist < minDist && dist < 400) {
+                                minDist = dist;
+                                nearestSouth = other;
+                            }
+                        }
+                    });
+                    
+                    if (nearestSouth) {
+                        // Draw fewer curved field lines between poles
+                        for (let i = 0; i < 5; i++) {
+                            const angle = (i / 5) * Math.PI * 2;
+                            const dx = nearestSouth.x - magnet.x;
+                            const dy = nearestSouth.y - magnet.y;
+                            const baseAngle = Math.atan2(dy, dx);
+                            const offsetAngle = (angle - Math.PI) * 0.3;
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(
+                                magnet.x + Math.cos(baseAngle + offsetAngle) * magnet.radius,
+                                magnet.y + Math.sin(baseAngle + offsetAngle) * magnet.radius
+                            );
+                            
+                            const curveStrength = minDist * 0.3;
+                            const perpX = -Math.sin(baseAngle) * curveStrength * Math.sin(offsetAngle);
+                            const perpY = Math.cos(baseAngle) * curveStrength * Math.sin(offsetAngle);
+                            
+                            ctx.quadraticCurveTo(
+                                (magnet.x + nearestSouth.x) / 2 + perpX,
+                                (magnet.y + nearestSouth.y) / 2 + perpY,
+                                nearestSouth.x - Math.cos(baseAngle + offsetAngle) * nearestSouth.radius,
+                                nearestSouth.y - Math.sin(baseAngle + offsetAngle) * nearestSouth.radius
+                            );
+                            ctx.stroke();
+                        }
+                    } else {
+                        // Draw fewer radial field lines for isolated poles
+                        for (let i = 0; i < 8; i++) {
+                            const angle = (i / 8) * Math.PI * 2;
+                            ctx.beginPath();
+                            ctx.moveTo(
+                                magnet.x + Math.cos(angle) * magnet.radius,
+                                magnet.y + Math.sin(angle) * magnet.radius
+                            );
+                            ctx.lineTo(
+                                magnet.x + Math.cos(angle) * 200,
+                                magnet.y + Math.sin(angle) * 200
+                            );
+                            ctx.stroke();
+                        }
+                    }
+                }
+            });
+            
+            // Update and draw particles
+            particles = particles.filter(particle => {
+                particle.update();
+                particle.draw();
+                return particle.life > 0 && 
+                       particle.x > -100 && particle.x < canvas.width + 100 &&
+                       particle.y > -100 && particle.y < canvas.height + 100;
+            });
+        }
+
+        function calculateMagneticForces() {
+            magnets.forEach((magnet1, i) => {
+                magnets.forEach((magnet2, j) => {
+                    if (i !== j) {
+                        const dx = magnet2.x - magnet1.x;
+                        const dy = magnet2.y - magnet1.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const minDist = magnet1.radius + magnet2.radius;
+                        
+                        // Check for collision
+                        if (dist < minDist && dist > 0) {
+                            // Collision detected! Push magnets apart
+                            const overlap = minDist - dist;
+                            const angle = Math.atan2(dy, dx);
+                            
+                            // Separate the magnets
+                            const separationX = Math.cos(angle) * overlap * 0.5;
+                            const separationY = Math.sin(angle) * overlap * 0.5;
+                            
+                            // Handle anchored magnets differently
+                            if (magnet1.anchored && !magnet2.anchored) {
+                                magnet2.x += separationX * 2;
+                                magnet2.y += separationY * 2;
+                            } else if (!magnet1.anchored && magnet2.anchored) {
+                                magnet1.x -= separationX * 2;
+                                magnet1.y -= separationY * 2;
+                            } else if (!magnet1.anchored && !magnet2.anchored) {
+                                magnet1.x -= separationX;
+                                magnet1.y -= separationY;
+                                magnet2.x += separationX;
+                                magnet2.y += separationY;
+                            }
+                            
+                            // Elastic collision response
+                            const relativeVx = magnet2.vx - magnet1.vx;
+                            const relativeVy = magnet2.vy - magnet1.vy;
+                            const dotProduct = relativeVx * Math.cos(angle) + relativeVy * Math.sin(angle);
+                            
+                            if (dotProduct < 0) {
+                                // Apply collision impulse with more bounce
+                                const impulse = dotProduct * 1.2;
+                                
+                                // Handle anchored magnets
+                                if (!magnet1.anchored) {
+                                    magnet1.vx += Math.cos(angle) * impulse * (magnet2.anchored ? 2 : 1);
+                                    magnet1.vy += Math.sin(angle) * impulse * (magnet2.anchored ? 2 : 1);
+                                }
+                                if (!magnet2.anchored) {
+                                    magnet2.vx -= Math.cos(angle) * impulse * (magnet1.anchored ? 2 : 1);
+                                    magnet2.vy -= Math.sin(angle) * impulse * (magnet1.anchored ? 2 : 1);
+                                }
+                                
+                                // Add small random perpendicular velocity for more natural collisions
+                                const perpAngle = angle + Math.PI/2;
+                                const randomForce = (Math.random() - 0.5) * 0.5;
+                                if (!magnet1.anchored) {
+                                    magnet1.vx += Math.cos(perpAngle) * randomForce;
+                                    magnet1.vy += Math.sin(perpAngle) * randomForce;
+                                }
+                                if (!magnet2.anchored) {
+                                    magnet2.vx -= Math.cos(perpAngle) * randomForce;
+                                    magnet2.vy -= Math.sin(perpAngle) * randomForce;
+                                }
+                            }
+                        }
+                        
+                        // Magnetic forces (only apply if not overlapping)
+                        if (dist < 200 && dist > minDist) {
+                            const force = (magnet1.strength * magnet2.strength) / (dist * dist) * 0.01;
+                            const angle = Math.atan2(dy, dx);
+                            
+                            // Same poles repel, opposite poles attract
+                            const multiplier = magnet1.type === magnet2.type ? -1 : 1;
+                            
+                            // Apply forces only to non-anchored magnets
+                            if (!magnet1.anchored) {
+                                magnet1.vx += Math.cos(angle) * force * multiplier;
+                                magnet1.vy += Math.sin(angle) * force * multiplier;
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function addMagnet(type) {
+            magnetType = type;
+            currentTool = 'place';
+            updateToolButtons();
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            updateToolButtons();
+        }
+
+        function updateToolButtons() {
+            // Update button states
+            document.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (currentTool === 'anchor') {
+                const anchorBtn = document.getElementById('anchorButton');
+                anchorBtn.classList.add('active');
+                canvas.style.cursor = 'pointer';
+            } else {
+                canvas.style.cursor = 'crosshair';
+                // Highlight the active magnet type button
+                if (magnetType === 'north') {
+                    document.getElementById('northButton').classList.add('active');
+                } else if (magnetType === 'south') {
+                    document.getElementById('southButton').classList.add('active');
+                }
+            }
+        }
+
+        function clearMagnets() {
+            magnets = [];
+            particles = [];
+        }
+
+        function toggleFieldView() {
+            showFieldLines = !showFieldLines;
+            if (!showFieldLines) {
+                particles = [];
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            
+            if (e.button === 2) { // Right click
+                e.preventDefault();
+                // Remove magnet
+                magnets = magnets.filter(magnet => {
+                    const dx = mouseX - magnet.x;
+                    const dy = mouseY - magnet.y;
+                    return Math.sqrt(dx * dx + dy * dy) > magnet.radius;
+                });
+                return;
+            }
+            
+            // Check if clicking on existing magnet
+            selectedMagnet = magnets.find(magnet => {
+                const dx = mouseX - magnet.x;
+                const dy = mouseY - magnet.y;
+                return Math.sqrt(dx * dx + dy * dy) < magnet.radius;
+            });
+            
+            if (selectedMagnet) {
+                if (currentTool === 'anchor') {
+                    // Toggle anchor state
+                    selectedMagnet.anchored = !selectedMagnet.anchored;
+                    selectedMagnet.vx = 0;
+                    selectedMagnet.vy = 0;
+                    selectedMagnet = null; // Don't start dragging
+                } else {
+                    // Only allow dragging if magnet is not anchored
+                    if (!selectedMagnet.anchored) {
+                        isDragging = true;
+                    }
+                }
+            } else if (currentTool === 'place') {
+                // Check if new magnet would overlap with existing ones
+                let canPlace = true;
+                const newMagnet = new Magnet(mouseX, mouseY, magnetType);
+                
+                magnets.forEach(existing => {
+                    const dx = existing.x - newMagnet.x;
+                    const dy = existing.y - newMagnet.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const minDist = existing.radius + newMagnet.radius;
+                    
+                    if (dist < minDist) {
+                        canPlace = false;
+                    }
+                });
+                
+                // Add new magnet only if it doesn't overlap
+                if (canPlace) {
+                    magnets.push(newMagnet);
+                }
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            
+            if (isDragging && selectedMagnet && !selectedMagnet.anchored) {
+                // Store old position
+                const oldX = selectedMagnet.x;
+                const oldY = selectedMagnet.y;
+                
+                // Try to move to new position
+                selectedMagnet.x = mouseX;
+                selectedMagnet.y = mouseY;
+                
+                // Check for collisions with other magnets
+                let collision = false;
+                magnets.forEach(other => {
+                    if (other !== selectedMagnet) {
+                        const dx = other.x - selectedMagnet.x;
+                        const dy = other.y - selectedMagnet.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const minDist = selectedMagnet.radius + other.radius;
+                        
+                        if (dist < minDist) {
+                            collision = true;
+                            // Push the dragged magnet to the edge of the other magnet
+                            const angle = Math.atan2(-dy, -dx);
+                            selectedMagnet.x = other.x + Math.cos(angle) * minDist;
+                            selectedMagnet.y = other.y + Math.sin(angle) * minDist;
+                        }
+                    }
+                });
+                
+                selectedMagnet.vx = 0;
+                selectedMagnet.vy = 0;
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            selectedMagnet = null;
+        });
+        
+        // Also handle mouse leave
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            selectedMagnet = null;
+        });
+
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
+        function drawFieldBackground() {
+            if (!showFieldLines || magnets.length === 0) return;
+            
+            const gridSize = 50;
+            ctx.save();
+            
+            for (let x = gridSize/2; x < canvas.width; x += gridSize) {
+                for (let y = gridSize/2; y < canvas.height; y += gridSize) {
+                    let fx = 0, fy = 0;
+                    
+                    // Calculate field at this point
+                    magnets.forEach(magnet => {
+                        const dx = x - magnet.x;
+                        const dy = y - magnet.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist > magnet.radius) {
+                            const fieldStrength = (magnet.strength * 2) / (dist * dist);
+                            
+                            if (magnet.type === 'north') {
+                                fx += (dx / dist) * fieldStrength;
+                                fy += (dy / dist) * fieldStrength;
+                            } else {
+                                fx -= (dx / dist) * fieldStrength;
+                                fy -= (dy / dist) * fieldStrength;
+                            }
+                        }
+                    });
+                    
+                    const magnitude = Math.sqrt(fx * fx + fy * fy);
+                    if (magnitude > 0.01) {
+                        const normalized_fx = fx / magnitude;
+                        const normalized_fy = fy / magnitude;
+                        
+                        // Draw minimal field indicators
+                        ctx.save();
+                        ctx.translate(x, y);
+                        ctx.rotate(Math.atan2(normalized_fy, normalized_fx));
+                        
+                        const alpha = Math.min(magnitude * 1.5, 0.2);
+                        ctx.strokeStyle = `rgba(102, 126, 234, ${alpha})`;
+                        ctx.lineWidth = 1;
+                        
+                        // Simple line indicator
+                        ctx.beginPath();
+                        ctx.moveTo(-8, 0);
+                        ctx.lineTo(8, 0);
+                        ctx.stroke();
+                        
+                        // Small arrow head
+                        ctx.beginPath();
+                        ctx.moveTo(4, -2);
+                        ctx.lineTo(8, 0);
+                        ctx.lineTo(4, 2);
+                        ctx.stroke();
+                        
+                        ctx.restore();
+                    }
+                }
+            }
+            
+            ctx.restore();
+        }
+
+        function animate() {
+            // Dark background
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw field background
+            drawFieldBackground();
+            
+            // Draw field lines
+            drawFieldLines();
+            
+            // Calculate forces and update magnets
+            if (!isDragging) {
+                calculateMagneticForces();
+            }
+            
+            magnets.forEach(magnet => {
+                if (magnet !== selectedMagnet || !isDragging) {
+                    magnet.update();
+                }
+                magnet.draw();
+            });
+            
+            animationFrame++;
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize everything
+        function init() {
+            // Setup friction slider
+            const frictionSlider = document.getElementById('frictionSlider');
+            const frictionValue = document.getElementById('frictionValue');
+            
+            if (frictionSlider && frictionValue) {
+                frictionSlider.oninput = function() {
+                    friction = parseFloat(this.value);
+                    frictionValue.textContent = friction.toFixed(2);
+                };
+            }
+            
+            // Initialize tool state
+            updateToolButtons();
+            
+            // Start animation
+            animate();
+        }
+        
+        // Start when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
