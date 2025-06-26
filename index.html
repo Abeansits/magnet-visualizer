@@ -55,10 +55,25 @@
             font-weight: 300;
             letter-spacing: -0.5px;
             margin-bottom: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            background-size: 200% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
             text-align: center;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            50% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
         }
 
         .section {
@@ -329,7 +344,7 @@
         </div>
         
         <div class="main-content">
-            <canvas id="canvas" width="900" height="600"></canvas>
+            <canvas id="canvas" width="1000" height="700"></canvas>
             <div class="info">
                 Click to place • Drag to move • Right-click to remove • Anchor tool locks magnets
                 <div class="legend">
